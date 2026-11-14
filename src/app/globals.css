@@ -390,3 +390,6 @@ h1, h2, h3, .font-heading { font-family: var(--font-fraunces), Georgia, serif; f
   .astraea-story *, .astraea-constellation line, .astraea-constellation circle, [data-slot="message"], .message, [role="log"] > * { animation: none !important; }
   .astraea-constellation line { stroke-dashoffset: 0; }
 }
+.astraea-demo-link { background: oklch(0.84 0.12 85) !important; color: oklch(0.18 0.04 275) !important; }
+.astraea-conversation { border-left-color: oklch(0.84 0.12 85 / 0.6) !important; }
+.astraea-conversation span { color: oklch(0.84 0.12 85) !important; }
