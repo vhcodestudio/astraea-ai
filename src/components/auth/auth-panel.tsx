@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BrandMark } from "@/components/brand-mark";
 import { createClient } from "@/lib/supabase/client";
+import { Constellation } from "./constellation";
 
 export function AuthPanel({ isConfigured }: { isConfigured: boolean }) {
   const router = useRouter();
@@ -87,6 +88,7 @@ export function AuthPanel({ isConfigured }: { isConfigured: boolean }) {
   return (
     <main className="astraea-entry">
       <section className="astraea-story" aria-labelledby="story-heading">
+        <Constellation />
         <Link href="/demo" className="astraea-wordmark">
           <BrandMark />
           <span>Astraea AI</span>

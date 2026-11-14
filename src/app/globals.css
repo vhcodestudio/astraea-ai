@@ -7,7 +7,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
   --font-heading:
     "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
@@ -336,4 +336,57 @@
   html {
     @apply font-sans;
   }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Astraea v2: observatory palette (night indigo + star gold),
+   Fraunces headings, constellation and soft motion.
+   ────────────────────────────────────────────────────────────── */
+.dark {
+  --background: oklch(0.14 0.03 275);
+  --card: oklch(0.18 0.035 275);
+  --popover: oklch(0.2 0.04 275);
+  --primary: oklch(0.84 0.12 85);
+  --primary-foreground: oklch(0.18 0.04 275);
+  --secondary: oklch(0.22 0.04 275);
+  --muted: oklch(0.21 0.035 275);
+  --muted-foreground: oklch(0.72 0.03 275);
+  --accent: oklch(0.26 0.06 280);
+  --ring: oklch(0.84 0.12 85);
+  --sidebar: oklch(0.16 0.032 275);
+  --sidebar-primary: oklch(0.84 0.12 85);
+  --sidebar-accent: oklch(0.24 0.05 278);
+}
+h1, h2, h3, .font-heading { font-family: var(--font-fraunces), Georgia, serif; font-variation-settings: "SOFT" 60; }
+
+.astraea-story {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(60% 50% at 70% 20%, oklch(0.32 0.09 285 / 0.55), transparent 70%),
+    radial-gradient(40% 40% at 10% 90%, oklch(0.45 0.1 70 / 0.18), transparent 70%),
+    oklch(0.15 0.035 275);
+  border-right-color: oklch(1 0 0 / 0.08);
+}
+.astraea-story > *:not(.astraea-constellation) { position: relative; z-index: 1; }
+.astraea-story h2 { font-weight: 500; letter-spacing: -0.03em; animation: astraea-rise .9s cubic-bezier(0, 0, 0, 1) both; }
+.astraea-story p, .astraea-demo-link, .astraea-story small { animation: astraea-rise .9s .15s cubic-bezier(0, 0, 0, 1) both; }
+.astraea-conversation { animation: astraea-rise .9s .35s cubic-bezier(0, 0, 0, 1) both; }
+.astraea-demo-link { transition: transform .45s cubic-bezier(.34, 1.56, .64, 1), box-shadow .3s; }
+.astraea-demo-link:hover { transform: translateY(-2px); box-shadow: 0 12px 30px -12px oklch(0.84 0.12 85 / 0.6); }
+
+.astraea-constellation { position: absolute; inset: auto -4% 6% auto; width: min(80%, 560px); opacity: .9; pointer-events: none; z-index: 0; }
+.astraea-constellation line { stroke: oklch(0.84 0.12 85 / 0.45); stroke-width: 1; stroke-dasharray: 200; stroke-dashoffset: 200; animation: astraea-trace 1.4s cubic-bezier(0, 0, 0, 1) forwards; }
+.astraea-constellation circle { fill: oklch(0.95 0.06 85); animation: astraea-twinkle 3s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+
+@keyframes astraea-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes astraea-trace { to { stroke-dashoffset: 0; } }
+@keyframes astraea-twinkle { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.7); } }
+
+/* Chat messages fade up as they arrive */
+[data-slot="message"], .message, [role="log"] > * { animation: astraea-rise .45s cubic-bezier(0, 0, 0, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .astraea-story *, .astraea-constellation line, .astraea-constellation circle, [data-slot="message"], .message, [role="log"] > * { animation: none !important; }
+  .astraea-constellation line { stroke-dashoffset: 0; }
 }
