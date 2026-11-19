@@ -12,3 +12,11 @@ describe("createDemoResponse", () => {
     expect(createDemoResponse("Mostre código TypeScript")).toContain("```ts");
   });
 });
+
+describe("createDemoResponse in other languages", () => {
+  it("answers in English and Spanish", () => {
+    expect(createDemoResponse("Hello", "en")).toContain("was not sent");
+    expect(createDemoResponse("Hazme un plan", "es")).toContain("Plan de demostración");
+    expect(createDemoResponse("Show me code", "en")).toContain("Technical assistance demo");
+  });
+});

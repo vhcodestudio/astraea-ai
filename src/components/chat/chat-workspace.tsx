@@ -34,20 +34,20 @@ import {
 import { createDemoResponse } from "@/lib/chat/demo-response";
 import { shouldSubmitMessage } from "@/lib/chat/keyboard";
 import type { Conversation, Message } from "@/lib/chat/types";
+import { LangSwitch, useLang } from "@/lib/i18n";
 
-const previewConversation: Conversation = {
+const previewConversation = (title: string): Conversation => ({
   id: "preview",
-  title: "Welcome to Astraea",
+  title,
   updated_at: new Date().toISOString(),
-};
-const previewMessages: Message[] = [
+});
+const previewMessages = (content: string): Message[] => [
   {
     id: "welcome",
     conversation_id: "preview",
     role: "assistant",
     created_at: new Date().toISOString(),
-    content:
-      '# Welcome to Astraea\n\nA focused AI workspace for thinking, building, and working with your knowledge.\n\nTry asking for a plan, analysis, or code example:\n\n```ts\nconst clarity = await astraea.think({\n  deeply: true,\n  context: "your workspace",\n});\n```',
+    content,
   },
 ];
 
@@ -72,15 +72,24 @@ export function ChatWorkspace({
   email: string | null;
   isPreview: boolean;
 }) {
+  const { t: d, lang } = useLang();
+  const t = d.chat;
   const [conversations, setConversations] = useState<Conversation[]>(
-    isPreview ? [previewConversation] : [],
+    isPreview ? [previewConversation(t.welcomeTitle)] : [],
   );
   const [activeId, setActiveId] = useState<string | null>(
     isPreview ? "preview" : null,
   );
   const [messages, setMessages] = useState<Message[]>(
-    isPreview ? previewMessages : [],
+    isPreview ? previewMessages(t.welcome) : [],
   );
+  // The preview welcome follows the chosen language.
+  useEffect(() => {
+    if (!isPreview) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- swap demo copy when the language changes
+    setConversations((items) => items.map((c) => (c.id === "preview" ? { ...c, title: t.welcomeTitle } : c)));
+    setMessages((items) => items.map((m) => (m.id === "welcome" ? { ...m, content: t.welcome } : m)));
+  }, [isPreview, t.welcomeTitle, t.welcome]);
   const [value, setValue] = useState("");
   const [loading, setLoading] = useState(false);
   const [initializing, setInitializing] = useState(!isPreview);
@@ -94,7 +103,7 @@ export function ChatWorkspace({
       setActiveId(id);
       setError(null);
       if (isPreview) {
-        setMessages(previewMessages);
+        setMessages(previewMessages(t.welcome));
         return;
       }
       setLoading(true);
@@ -104,13 +113,13 @@ export function ChatWorkspace({
         setError(
           reason instanceof Error
             ? reason.message
-            : "Could not load this conversation.",
+            : t.errors.load,
         );
       } finally {
         setLoading(false);
       }
     },
-    [isPreview],
+    [isPreview, t.welcome, t.errors.load],
   );
 
   useEffect(() => {
@@ -126,13 +135,14 @@ export function ChatWorkspace({
         setError(
           reason instanceof Error
             ? reason.message
-            : "Could not load conversations.",
+            : t.errors.list,
         ),
       )
       .finally(() => setInitializing(false));
     return () => {
       active = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- load once per mode, not on language change
   }, [isPreview, loadConversation]);
 
   useEffect(() => {
@@ -161,7 +171,7 @@ export function ChatWorkspace({
     try {
       const conversation = await createConversation(
         createClient(),
-        "New conversation",
+        t.newTitle,
       );
       setConversations((current) => [conversation, ...current]);
       setActiveId(conversation.id);
@@ -169,7 +179,7 @@ export function ChatWorkspace({
       setError(
         reason instanceof Error
           ? reason.message
-          : "Could not create a conversation.",
+          : t.errors.create,
       );
     }
     textareaRef.current?.focus();
@@ -191,7 +201,7 @@ export function ChatWorkspace({
       setError(
         reason instanceof Error
           ? reason.message
-          : "Could not rename the conversation.",
+          : t.errors.rename,
       );
     }
   }
@@ -210,7 +220,7 @@ export function ChatWorkspace({
       setError(
         reason instanceof Error
           ? reason.message
-          : "Could not delete the conversation.",
+          : t.errors.del,
       );
     }
   }
@@ -256,7 +266,7 @@ export function ChatWorkspace({
       pendingAssistantId = assistant.id;
       setMessages((current) => [...current, assistant]);
       await new Promise((resolve) => setTimeout(resolve, 450));
-      const answer = createDemoResponse(content);
+      const answer = createDemoResponse(content, lang);
       setMessages((current) =>
         current.map((message) =>
           message.id === assistant.id
@@ -279,7 +289,7 @@ export function ChatWorkspace({
       setError(
         reason instanceof Error
           ? reason.message
-          : "Your message could not be saved.",
+          : t.errors.save,
       );
       setValue(content);
     } finally {
@@ -317,10 +327,10 @@ export function ChatWorkspace({
       />
       <section
         className="relative flex min-w-0 flex-1 flex-col"
-        aria-label="Conversation workspace"
+        aria-label={t.area}
       >
         <a className="astraea-skip" href="#astraea-composer">
-          Skip to message
+          {t.skip}
         </a>
         <header className="flex h-16 shrink-0 items-center border-b border-white/[0.07] bg-background/80 px-4 backdrop-blur-xl sm:px-6">
           <Button
@@ -328,32 +338,33 @@ export function ChatWorkspace({
             variant="ghost"
             size="icon"
             className="mr-2 lg:hidden"
-            aria-label="Open sidebar"
+            aria-label={t.openSidebar}
           >
             <Menu />
           </Button>
           <div>
-            <p className="text-sm font-semibold">Astraea Core</p>
+            <p className="text-sm font-semibold">{t.core}</p>
             <p className="text-[10px] text-muted-foreground">
-              Interactive portfolio experience
+              {t.sub}
             </p>
           </div>
           <div className="ml-auto flex items-center gap-2">
+            <LangSwitch className="hidden sm:flex" />
             {isPreview && (
               <span className="rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
-                Local preview
+                {t.localPreview}
               </span>
             )}
             <span className="flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
               <i className="size-1.5 rounded-full bg-primary" />
-              Demo mode
+              {t.demo}
             </span>
           </div>
         </header>
         <p className="astraea-demo-notice">
           {isPreview
-            ? "Public demo: simulated responses, no external AI provider. Changes are temporary."
-            : "Responses are simulated. Verify important information."}
+            ? t.noticePreview
+            : t.notice}
         </p>
         <ScrollArea className="astraea-grid min-h-0 flex-1">
           <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col px-4 py-8 sm:px-8 sm:py-12">
@@ -367,11 +378,10 @@ export function ChatWorkspace({
                   <Sparkles className="size-6" />
                 </span>
                 <h1 className="text-3xl font-semibold tracking-[-0.045em] sm:text-4xl">
-                  What will we explore?
+                  {t.emptyTitle}
                 </h1>
                 <p className="mt-3 max-w-md text-sm leading-6 text-muted-foreground">
-                  Start a conversation. Your messages will stay connected to
-                  your Astraea workspace.
+                  {t.emptyText}
                 </p>
               </div>
             ) : (
@@ -386,12 +396,12 @@ export function ChatWorkspace({
                             : "bg-secondary text-[10px]"
                         }
                       >
-                        {message.role === "assistant" ? "A" : "YOU"}
+                        {message.role === "assistant" ? "A" : t.youShort}
                       </AvatarFallback>
                     </Avatar>
                     <div className="min-w-0 flex-1">
                       <p className="mb-2 text-xs font-semibold text-muted-foreground">
-                        {message.role === "assistant" ? "Astraea" : "You"}
+                        {message.role === "assistant" ? "Astraea" : t.you}
                       </p>
                       <MessageContent content={message.content} />
                     </div>
@@ -404,7 +414,7 @@ export function ChatWorkspace({
                       <i className="size-1.5 animate-pulse rounded-full bg-primary [animation-delay:150ms]" />
                       <i className="size-1.5 animate-pulse rounded-full bg-primary [animation-delay:300ms]" />
                     </span>
-                    Astraea is thinking
+                    {t.thinking}
                   </div>
                 )}
                 <div ref={endRef} />
@@ -432,20 +442,20 @@ export function ChatWorkspace({
                 onChange={(event) => setValue(event.target.value)}
                 onKeyDown={onKeyDown}
                 disabled={loading}
-                placeholder="Message Astraea..."
-                aria-label="Message Astraea"
+                placeholder={t.placeholder}
+                aria-label={t.placeholder.replace("...", "")}
                 className="max-h-[180px] min-h-12 resize-none border-0 bg-transparent px-3 py-3 shadow-none focus-visible:ring-0"
               />
               <div className="flex items-center gap-1 px-3 pb-1">
                 <span className="hidden text-[11px] text-muted-foreground sm:block">
-                  <kbd>Enter</kbd> to send · <kbd>Shift Enter</kbd> for new line
+                  <kbd>{t.hint[0]}</kbd> {t.hint[1]} <kbd>{t.hint[2]}</kbd> {t.hint[3]}
                 </span>
                 <Button
                   type="submit"
                   size="icon"
                   className="ml-auto rounded-xl"
                   disabled={!value.trim() || loading}
-                  aria-label="Send message"
+                  aria-label={t.send}
                 >
                   {loading ? (
                     <LoaderCircle className="animate-spin" />
@@ -456,7 +466,7 @@ export function ChatWorkspace({
               </div>
             </form>
             <p className="mt-2 text-center text-[10px] text-muted-foreground/70">
-              Astraea can make mistakes. Verify important information.
+              {t.footer}
             </p>
           </div>
         </div>

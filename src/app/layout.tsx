@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Hanken_Grotesk, Fraunces, Geist_Mono } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { LangProvider } from "@/lib/i18n";
 import "./globals.css";
 
 const geistSans = Hanken_Grotesk({
@@ -24,7 +25,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} dark h-full`}>
       <body className="min-h-full bg-background antialiased">
-        <TooltipProvider>{children}</TooltipProvider>
+        <LangProvider><TooltipProvider>{children}</TooltipProvider></LangProvider>
       </body>
     </html>
   );

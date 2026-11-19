@@ -10,9 +10,12 @@ import { Input } from "@/components/ui/input";
 import { BrandMark } from "@/components/brand-mark";
 import { createClient } from "@/lib/supabase/client";
 import { Constellation } from "./constellation";
+import { LangSwitch, useLang } from "@/lib/i18n";
 
 export function AuthPanel({ isConfigured }: { isConfigured: boolean }) {
   const router = useRouter();
+  const { t: all } = useLang();
+  const t = all.auth;
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,9 +31,7 @@ export function AuthPanel({ isConfigured }: { isConfigured: boolean }) {
     setPending(true);
     try {
       if (!isConfigured)
-        throw new Error(
-          "Add the Supabase environment variables to enable authentication.",
-        );
+        throw new Error(t.noConfig);
       const supabase = createClient();
       if (mode === "login") {
         const { error: authError } = await supabase.auth.signInWithPassword({
@@ -49,11 +50,11 @@ export function AuthPanel({ isConfigured }: { isConfigured: boolean }) {
           },
         });
         if (authError) throw authError;
-        setMessage("Check your inbox to confirm your Astraea account.");
+        setMessage(t.checkInbox);
       }
     } catch (value) {
       setError(
-        value instanceof Error ? value.message : "Authentication failed.",
+        value instanceof Error ? value.message : t.failed,
       );
     } finally {
       setPending(false);
@@ -66,9 +67,7 @@ export function AuthPanel({ isConfigured }: { isConfigured: boolean }) {
     setGooglePending(true);
     try {
       if (!isConfigured)
-        throw new Error(
-          "Add the Supabase environment variables to enable authentication.",
-        );
+        throw new Error(t.noConfig);
       const supabase = createClient();
       const { error: authError } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -79,7 +78,7 @@ export function AuthPanel({ isConfigured }: { isConfigured: boolean }) {
       setError(
         value instanceof Error
           ? value.message
-          : "Google authentication failed.",
+          : t.googleFailed,
       );
       setGooglePending(false);
     }
@@ -94,29 +93,27 @@ export function AuthPanel({ isConfigured }: { isConfigured: boolean }) {
           <span>Astraea AI</span>
         </Link>
         <div>
-          <h2 id="story-heading">A place to think things through.</h2>
+          <h2 id="story-heading">{t.story}</h2>
           <p>
-            Bring a question, shape a plan, and keep the conversation together.
-            A focused workspace for your next idea.
+            {t.storyText}
           </p>
           <Link href="/demo" className="astraea-demo-link">
-            Explore the interactive demo{" "}
+            {t.demoLink}{" "}
             <ArrowRight size={18} aria-hidden="true" />
           </Link>
           <small>
-            No account needed. Simulated responses, no external AI provider.
+            {t.demoNote}
           </small>
         </div>
         <div
           className="astraea-conversation"
-          aria-label="Example of a simulated conversation"
+          aria-label={t.exampleLabel}
         >
           <p>
-            <span>You</span>How should I approach my next project?
+            <span>{all.chat.you}</span>{t.exampleQ}
           </p>
           <p>
-            <span>Astraea · Example</span>Start with the problem. Define one
-            useful outcome, then build a small version you can test.
+            <span>{t.exampleWho}</span>{t.exampleA}
           </p>
         </div>
         <a
@@ -125,26 +122,27 @@ export function AuthPanel({ isConfigured }: { isConfigured: boolean }) {
           target="_blank"
           rel="noopener noreferrer"
         >
-          View the project on GitHub
+          {t.github}
         </a>
       </section>
-      <section className="astraea-auth" aria-label="Account access">
+      <section className="astraea-auth" aria-label={t.access}>
+        <LangSwitch className="mb-6 ml-auto w-max" />
         <div className="mb-8 flex items-center gap-3">
           <BrandMark />
           <div>
             <p className="font-semibold tracking-tight">Astraea AI</p>
             <p className="text-xs text-muted-foreground">
-              Your intelligent workspace
+              {t.yourWorkspace}
             </p>
           </div>
         </div>
         <h1 className="text-2xl font-semibold tracking-[-0.035em]">
-          {mode === "login" ? "Welcome back" : "Create your workspace"}
+          {mode === "login" ? t.welcomeBack : t.create}
         </h1>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
           {mode === "login"
-            ? "Continue your conversations and knowledge work."
-            : "Start building with a calmer, more capable AI workspace."}
+            ? t.loginText
+            : t.registerText}
         </p>
         <Button
           type="button"
@@ -158,28 +156,28 @@ export function AuthPanel({ isConfigured }: { isConfigured: boolean }) {
           ) : (
             <GoogleMark />
           )}
-          Continue with Google
+          {t.google}
         </Button>
         <div className="my-6 flex items-center gap-3 text-xs text-muted-foreground">
           <span className="h-px flex-1 bg-white/10" />
-          <span>or use email</span>
+          <span>{t.orEmail}</span>
           <span className="h-px flex-1 bg-white/10" />
         </div>
         <form className="space-y-4" onSubmit={submit}>
           <label className="block space-y-2 text-sm">
-            <span className="text-muted-foreground">Email</span>
+            <span className="text-muted-foreground">{t.email}</span>
             <Input
               type="email"
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              placeholder="you@example.com"
+              placeholder={t.emailPh}
               className="h-11 bg-background/50"
             />
           </label>
           <label className="block space-y-2 text-sm">
-            <span className="text-muted-foreground">Password</span>
+            <span className="text-muted-foreground">{t.password}</span>
             <Input
               type="password"
               autoComplete={
@@ -189,7 +187,7 @@ export function AuthPanel({ isConfigured }: { isConfigured: boolean }) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              placeholder="At least 8 characters"
+              placeholder={t.passwordPh}
               className="h-11 bg-background/50"
             />
           </label>
@@ -209,7 +207,7 @@ export function AuthPanel({ isConfigured }: { isConfigured: boolean }) {
               <LoaderCircle className="animate-spin" />
             ) : (
               <>
-                {mode === "login" ? "Sign in" : "Create account"}
+                {mode === "login" ? t.signIn : t.createAccount}
                 <ArrowRight />
               </>
             )}
@@ -226,11 +224,11 @@ export function AuthPanel({ isConfigured }: { isConfigured: boolean }) {
             className="transition hover:text-foreground"
           >
             {mode === "login"
-              ? "Create an account"
-              : "Already have an account?"}
+              ? t.toRegister
+              : t.toLogin}
           </button>
           <Link href="/demo" className="transition hover:text-foreground">
-            Try demo
+            {t.tryDemo}
           </Link>
         </div>
       </section>
